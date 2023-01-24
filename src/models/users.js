@@ -22,6 +22,10 @@ const UsersModel = dbSequelize.define(
     role: {
       type: DataTypes.STRING,
     },
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: "unverified",
+    },
   },
   {
     timestamps: false,

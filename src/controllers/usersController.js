@@ -2,6 +2,7 @@ const UsersModel = require("../models/users");
 const Sequelize = require("sequelize");
 const bcrypt = require("bcrypt");
 const { createToken, hashPassword } = require("../configs/encrypt");
+const { transport } = require("../configs/nodemailer");
 
 module.exports = {
   getData: async (req, res) => {
@@ -44,14 +45,30 @@ module.exports = {
       }
 
       const newPass = hashPassword(password);
-
       const newUser = await UsersModel.create({ email, password: newPass });
+      let token = createToken({ ...user });
 
-      return res.status(200).send({
-        success: true,
-        message: "Account successfully registered.",
-        user: newUser,
-      });
+      transport.sendMail(
+        {
+          from: "POS Admin",
+          to: email,
+          subject: "Account verification",
+          html: `<div>
+        <h3>Clink link below to verify your account</h3>
+        <a href="http://localhost:3000/verification?t=${token}">Verify</a>
+        </div>`,
+        },
+        (error, info) => {
+          if (error) {
+            return res.status(401).send(error);
+          }
+          return res.status(200).send({
+            success: true,
+            message: "Account successfully registered.",
+            user: newUser,
+          });
+        }
+      );
     } catch (error) {
       console.log(error);
       return res.status(500).send({
