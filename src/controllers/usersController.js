@@ -23,21 +23,21 @@ module.exports = {
       });
 
       if (user) {
-        return res.status(400).send({
+        return res.status(401).send({
           success: false,
           message: "Account is already exists.",
         });
       }
 
       if (password != passwordAgain) {
-        return res.status(400).send({
+        return res.status(401).send({
           success: false,
           message: "Passwords do not match.",
         });
       }
 
       if (password.length < 8) {
-        return res.status(400).send({
+        return res.status(401).send({
           success: false,
           message: "Password must be at least 8 characters",
         });
@@ -54,12 +54,48 @@ module.exports = {
       });
     } catch (error) {
       console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: "An error occured while registering.",
+      });
     }
   },
   login: async (req, res) => {
+    const { email, password } = req.body;
     try {
+      let user = await UsersModel.findOne({ where: { email } });
+
+      if (!user) {
+        return res.status(401).send({
+          success: false,
+          message: "Credential did not match.",
+        });
+      }
+
+      const checkPass = bcrypt.compareSync(password, user.password);
+      if (!checkPass) {
+        return res.status(401).send({
+          success: false,
+          message: "Credential did not match.",
+        });
+      }
+
+      if (checkPass) {
+        let token = createToken({ ...user });
+        console.log(user);
+        return res.status(200).send({
+          success: true,
+          message: "You have successfully logged in.",
+          token,
+        });
+      }
     } catch (error) {
       console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: "An error occured while login.",
+        error,
+      });
     }
   },
 };
