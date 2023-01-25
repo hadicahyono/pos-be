@@ -15,7 +15,7 @@ module.exports = {
     }
   },
   register: async (req, res) => {
-    const { email, password, passwordAgain } = req.body;
+    const { id, email, password, passwordAgain } = req.body;
     try {
       const user = await UsersModel.findOne({
         where: {
@@ -46,7 +46,7 @@ module.exports = {
 
       const newPass = hashPassword(password);
       const newUser = await UsersModel.create({ email, password: newPass });
-      let token = createToken({ ...user });
+      let token = createToken({ id, email });
 
       transport.sendMail(
         {
@@ -111,6 +111,44 @@ module.exports = {
       return res.status(500).send({
         success: false,
         message: "An error occured while login.",
+        error,
+      });
+    }
+  },
+  keepLogin: async (req, res) => {
+    try {
+      let user = await UsersModel.findOne({
+        where: { id: req.decrypt.dataValues.id },
+      });
+      if (!user) {
+        return res
+          .status(401)
+          .send({ success: false, message: "User not found." });
+      }
+
+      let token = createToken({ ...user });
+      console.log(`keepLogin dataValues.id ->`, req.decrypt.dataValues.id);
+      return res.status(200).send({ ...user, token });
+    } catch (error) {
+      console.log(error);
+    }
+  },
+  verifyAccount: async (req, res) => {
+    try {
+      console.log(`verify dataValues.id ->`, req.decrypt.dataValues.id);
+      let user = await UsersModel.update(
+        { status: "verified" },
+        { where: { id: req.decrypt.dataValues.id } }
+      );
+      return res.status(200).send({
+        success: true,
+        message: "Account status successfully updated.",
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        success: false,
+        message: "An error occured while verifying.",
         error,
       });
     }
