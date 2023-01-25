@@ -98,11 +98,14 @@ module.exports = {
       }
 
       if (checkPass) {
-        let token = createToken({ ...user });
-        console.log(user);
+        let token = createToken({ ...user.dataValues });
+        // console.log(user);
+        delete user.dataValues.password;
+        // console.log(`token login ->`, token);
         return res.status(200).send({
           success: true,
           message: "You have successfully logged in.",
+          ...user.dataValues,
           token,
         });
       }
@@ -118,7 +121,7 @@ module.exports = {
   keepLogin: async (req, res) => {
     try {
       let user = await UsersModel.findOne({
-        where: { id: req.decrypt.dataValues.id },
+        where: { id: req.decrypt.id },
       });
       if (!user) {
         return res
@@ -126,9 +129,11 @@ module.exports = {
           .send({ success: false, message: "User not found." });
       }
 
-      let token = createToken({ ...user });
-      console.log(`keepLogin dataValues.id ->`, req.decrypt.dataValues.id);
-      return res.status(200).send({ ...user, token });
+      let token = createToken({ ...user.dataValues });
+      console.log(`keepLogin req.decrypt.id ->`, req.decrypt.id);
+      console.log(`keepLogin token ->`, token);
+      // console.log(`keepLogin dataValues.id ->`, req.decrypt);
+      return res.status(200).send({ ...user.dataValues, token });
     } catch (error) {
       console.log(error);
     }
