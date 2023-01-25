@@ -46,7 +46,7 @@ module.exports = {
 
       const newPass = hashPassword(password);
       const newUser = await UsersModel.create({ email, password: newPass });
-      let token = createToken({ id, email });
+      let token = createToken({ id: newUser.id, email });
 
       transport.sendMail(
         {
@@ -135,14 +135,15 @@ module.exports = {
   },
   verifyAccount: async (req, res) => {
     try {
-      console.log(`verify dataValues.id ->`, req.decrypt.dataValues.id);
+      console.log(`verify req.decrypt ->`, req.decrypt);
       let user = await UsersModel.update(
         { status: "verified" },
-        { where: { id: req.decrypt.dataValues.id } }
+        { where: { id: req.decrypt.id } }
       );
       return res.status(200).send({
         success: true,
         message: "Account status successfully updated.",
+        user,
       });
     } catch (error) {
       console.log(error);
