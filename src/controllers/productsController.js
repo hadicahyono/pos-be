@@ -170,6 +170,5 @@ module.exports = {
   },
   filterProduct: async (req, res) => {
     const { q } = req.query;
-    console.log(q);
   },
 };
