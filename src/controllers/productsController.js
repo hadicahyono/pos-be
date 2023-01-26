@@ -141,4 +141,31 @@ module.exports = {
       });
     }
   },
+  searchProduct: async (req, res) => {
+    const { q } = req.query;
+    try {
+      let search = await ProductsModel.findAll({
+        where: {
+          [Sequelize.Op.or]: [
+            { name: { [Sequelize.Op.like]: `%${q}%` } },
+            { category: { [Sequelize.Op.like]: `%${q}%` } },
+          ],
+        },
+      });
+
+      if (!search) {
+        res.status(400).send({
+          message: "Products not found",
+        });
+      }
+
+      res.status(200).send(search);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        message: "An error occured while updating product.",
+        error,
+      });
+    }
+  },
 };
