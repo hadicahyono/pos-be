@@ -2,7 +2,7 @@ const Sequelize = require("sequelize");
 const ProductsModel = require("../models/products");
 
 module.exports = {
-  getMenus: async (req, res) => {
+  getProducts: async (req, res) => {
     try {
       let data = await ProductsModel.findAll();
       console.log(data);
@@ -15,13 +15,128 @@ module.exports = {
       });
     }
   },
-  createProduct: async (req, res) => {
+  addProduct: async (req, res) => {
+    const { name, price, quantity, category } = req.body;
     try {
-      let data = await ProductsModel.findOne();
+      if (await ProductsModel.findOne({ where: { name } })) {
+        return res.status(401).send({
+          success: false,
+          message: "Product already exists.",
+        });
+      }
+
+      if (quantity < 1) {
+        return res.status(401).send({
+          success: false,
+          message:
+            "Invalid quantity value. Must be greater than or equal to 1.",
+        });
+      }
+
+      const allowedCategories = ["Coffee", "Tea", "Beverages", "Food"];
+      if (!allowedCategories.includes(category)) {
+        return res.status(400).send({
+          success: false,
+          message: `Invalid category value. The category must be one of ${allowedCategories.join(
+            ", "
+          )}.`,
+        });
+      }
+
+      if (price < 1000) {
+        return res.status(400).send({
+          success: false,
+          message: `Invalid price value. The price must be more than 1000. Please enter a valid price.`,
+        });
+      }
+
+      if (name.length < 3) {
+        return res.status(400).send({
+          success: false,
+          message: `Invalid name length. The name length must be more than 3 characters. Please enter a valid name.`,
+        });
+      }
+
+      let newProduct = await ProductsModel.create({
+        name,
+        price,
+        quantity,
+        category,
+      });
+      return res.status(200).send({
+        success: true,
+        message: "Product added successfully",
+        data: newProduct,
+      });
     } catch (error) {
       console.log(error);
       res.status(500).send({
         message: "An error occured while GET data.",
+        error,
+      });
+    }
+  },
+  updateProduct: async (req, res) => {
+    const { id } = req.params;
+    const { name, price, quantity, category } = req.body;
+    try {
+      if (
+        !(await ProductsModel.findOne({
+          where: { product_id: id },
+        }))
+      ) {
+        return res.status(404).send({
+          success: false,
+          message: "Product not found.",
+        });
+      }
+
+      if (name && name.length < 3) {
+        return res.status(400).send({
+          success: false,
+          message: `Invalid name length. The name length must be more than 3 characters. Please enter a valid name.`,
+        });
+      }
+
+      if (quantity && quantity < 1) {
+        return res.status(401).send({
+          success: false,
+          message:
+            "Invalid quantity value. Must be greater than or equal to 1.",
+        });
+      }
+
+      const allowedCategories = ["Coffee", "Tea", "Beverages", "Food"];
+      if (category && !allowedCategories.includes(category)) {
+        return res.status(400).send({
+          success: false,
+          message: `Invalid category value. The category must be one of ${allowedCategories.join(
+            ", "
+          )}.`,
+        });
+      }
+
+      if (price && price < 1000) {
+        return res.status(400).send({
+          success: false,
+          message: `Invalid price value. The price must be more than 1000. Please enter a valid price.`,
+        });
+      }
+      const update = await productToUpdate.update({
+        name,
+        price,
+        quantity,
+        category,
+      });
+      return res.status(200).send({
+        success: true,
+        message: "Product updated successfully",
+        data: update,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        message: "An error occured while updating product.",
         error,
       });
     }

@@ -26,7 +26,8 @@ const ProductsModel = dbSequelize.define(
       type: DataTypes.STRING,
     },
     category: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM,
+      values: ["Coffee", "Tea", "Beverages", "Food"],
     },
     is_active: {
       type: DataTypes.BOOLEAN,
