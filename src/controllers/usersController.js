@@ -12,6 +12,10 @@ module.exports = {
       return res.status(200).send(data);
     } catch (error) {
       console.log(error);
+      return res.status(500).send({
+        message: "An error occured while GET data.",
+        error,
+      });
     }
   },
   register: async (req, res) => {
@@ -131,7 +135,7 @@ module.exports = {
 
       let token = createToken({ ...user.dataValues });
       console.log(`keepLogin req.decrypt.id ->`, req.decrypt.id);
-      console.log(`keepLogin token ->`, token);
+      // console.log(`keepLogin token ->`, token);
       // console.log(`keepLogin dataValues.id ->`, req.decrypt);
       return res.status(200).send({ ...user.dataValues, token });
     } catch (error) {
