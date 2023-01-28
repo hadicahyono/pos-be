@@ -9,19 +9,47 @@ module.exports = {
         const filters = req.query.filter.split(",").map((f) => f.split(":"));
         filters.forEach((filter) => {
           query[filter[0]] = filter[1];
+          console.log("filter ->", filter);
         });
+        console.log("filters ->", filters);
       }
 
       let order = [];
       if (req.query.sort) {
         const sortOption = req.query.sort.split(":");
-        order.push([sortOption[0], sortOption[1] === "asc" ? "ASC" : "DESC"]);
+        order.push([sortOption[0], sortOption[1] === "desc" ? "DESC" : "ASC"]);
       }
       console.log("query ->", query);
       console.log("order ->", order);
-      let data = await ProductsModel.findAll({ where: query, order: order });
-      console.log(data);
-      return res.status(200).send(data);
+
+      let pageSize = 10;
+      let pageNumber = 1;
+      if (req.query.pageSize) {
+        pageSize = parseInt(req.query.pageSize);
+      }
+
+      if (req.query.page) {
+        pageNumber = parseInt(req.query.page);
+      }
+
+      let offset = (pageNumber - 1) * pageSize;
+      let data = await ProductsModel.findAll({
+        where: query,
+        order,
+        limit: pageSize,
+        offset,
+      });
+      let total = await ProductsModel.count({ where: query });
+      let totalPages = Math.ceil(total / pageSize);
+
+      // console.log(data);
+      return res.status(200).send({
+        data,
+        totalPages,
+        currentPage: pageNumber,
+        pageSize,
+        total,
+      });
     } catch (error) {
       console.log(error);
       return res.status(500).send({
