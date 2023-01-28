@@ -4,7 +4,22 @@ const ProductsModel = require("../models/products");
 module.exports = {
   getProducts: async (req, res) => {
     try {
-      let data = await ProductsModel.findAll();
+      let query = {};
+      if (req.query.filter) {
+        const filters = req.query.filter.split(",").map((f) => f.split(":"));
+        filters.forEach((filter) => {
+          query[filter[0]] = filter[1];
+        });
+      }
+
+      let order = [];
+      if (req.query.sort) {
+        const sortOption = req.query.sort.split(":");
+        order.push([sortOption[0], sortOption[1] === "asc" ? "ASC" : "DESC"]);
+      }
+      console.log("query ->", query);
+      console.log("order ->", order);
+      let data = await ProductsModel.findAll({ where: query, order: order });
       console.log(data);
       return res.status(200).send(data);
     } catch (error) {
