@@ -9,7 +9,6 @@ module.exports = {
         const filters = req.query.filter.split(",").map((f) => f.split(":"));
         filters.forEach((filter) => {
           query[filter[0]] = filter[1];
-          console.log("filter ->", filter);
         });
         console.log("filters ->", filters);
       }
@@ -210,8 +209,5 @@ module.exports = {
         error,
       });
     }
-  },
-  filterProduct: async (req, res) => {
-    const { q } = req.query;
   },
 };
